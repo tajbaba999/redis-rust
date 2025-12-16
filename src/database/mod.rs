@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::{Arc, RwLock}, time::Instant};
+use std::{collections::HashMap, sync::{Arc, RwLock}, time::{Duration, Instant}};
 
 pub  struct Database {
     db : Arc<RwLock<HashMap<String, String>>>,
@@ -28,8 +28,18 @@ impl Database {
 
     let db = self.db.read().unwrap();
     db.get(key).cloned()
-}
-  
+    }
+    
+    pub async fn set(&self, key : String, value : String, ttl : Option<u64> ) {
+        let mut  db_map = self.db.write().await;
+        db_map.insert(key.clone(), value);
+
+        if let Some(sec) = ttl{
+            let exp_time = Instant::now() + Duration::from_secs(sec);
+            let mut exp_map = self.expiry.write().await;
+            exp_map.insert(key, exp_time)
+        }
+    }
 
 
     pub async fn is_expired(&self, key : &str) -> bool {
