@@ -1,0 +1,8 @@
+[package]
+name = "redis-rust"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tokio = "1.48.0"
+tokio-macros = "2.6.0"
