@@ -1,0 +1,9 @@
+{
+    "version": "1",
+    "name": "Redis-Rust",
+    "type": "collection",
+    "ignore": [
+        "target",
+        ".git"
+    ]
+}

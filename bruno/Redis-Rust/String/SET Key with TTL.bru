@@ -1,0 +1,22 @@
+meta {
+  name: SET Key with TTL
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:3000/keys/expkey
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "value": "expires-soon",
+    "ttl": 60
+  }
+}

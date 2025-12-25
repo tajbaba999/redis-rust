@@ -1,0 +1,21 @@
+meta {
+  name: RPUSH
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3000/lists/mylist/rpush
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "value": "last-item"
+  }
+}

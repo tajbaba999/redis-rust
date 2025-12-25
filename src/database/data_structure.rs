@@ -1,20 +1,21 @@
-use std::collections::VecDeque;
+use std::collections::{VecDeque, HashSet, HashMap, BTreeSet};
 use std::cmp::Ordering;
+use ordered_float::OrderedFloat;
 
 
 pub struct RList {
-    pub list : VecDeque<String>
+    pub list: VecDeque<String>
 }
 
 impl RList {
     pub fn new() -> Self {
         Self {
-            list : VecDeque::new()
+            list: VecDeque::new()
         }
     } 
     
     // LPUSH, LPOP, RPUSH, RPOP
-    pub fn lpush(&mut self, value : String){
+    pub fn lpush(&mut self, value: String) {
         self.list.push_front(value);
     }
 
@@ -22,7 +23,7 @@ impl RList {
         self.list.pop_front()
     }
 
-    pub fn rpush(&mut self, value : String){
+    pub fn rpush(&mut self, value: String) {
         self.list.push_back(value);
     }
 
@@ -30,27 +31,41 @@ impl RList {
         self.list.pop_back()
     }
 
-    pub fn lrange(&self, start : i64, end : i64) -> Vec<String> {
-        self.list.iter().skip(start as usize).take(end as usize - start as usize).cloned().collect();
+    pub fn lrange(&self, start: i64, end: i64) -> Vec<String> {
+        let len = self.list.len() as i64;
+        
+        // Handle negative indices like Redis
+        let start = if start < 0 { (len + start).max(0) } else { start.min(len) } as usize;
+        let end = if end < 0 { (len + end).max(0) } else { end.min(len - 1) } as usize;
+        
+        if start > end || start >= self.list.len() {
+            return Vec::new();
+        }
+        
+        self.list.iter()
+            .skip(start)
+            .take(end - start + 1)
+            .cloned()
+            .collect()
     }
 }
 
 pub struct RSets {
-    pub set : HashSet<String>,
+    pub set: HashSet<String>,
 }
 
 impl RSets {
     pub fn new() -> Self {
         Self {
-            set : HashSet::new()
+            set: HashSet::new()
         }
     }
     //SADD, SREM, SMEMBERS, SISMEMBER
-    pub fn sadd(&mut self, value : String) -> bool {
+    pub fn sadd(&mut self, value: String) -> bool {
         self.set.insert(value)
     }
 
-    pub fn srem(&mut self, value : String) -> bool {
+    pub fn srem(&mut self, value: String) -> bool {
         self.set.remove(&value)
     }
 
@@ -58,7 +73,7 @@ impl RSets {
         self.set.iter().cloned().collect()
     }
 
-    pub fn sismember(&self, value : &str) -> bool {
+    pub fn sismember(&self, value: &str) -> bool {
         self.set.contains(value)
     }
 }
@@ -66,12 +81,12 @@ impl RSets {
 
 //Sorted sets or ordered sets
 #[derive(Clone, Eq)]
-pub struct SortedMembers{
-    pub member : String,
-    pub score : OrderedFloat<f64>
+pub struct SortedMembers {
+    pub member: String,
+    pub score: OrderedFloat<f64>
 }
 
-impl PartialEq for  SortedMembers {
+impl PartialEq for SortedMembers {
     fn eq(&self, other: &Self) -> bool {
         self.member == other.member && self.score == other.score
     }
@@ -79,7 +94,10 @@ impl PartialEq for  SortedMembers {
 
 impl Ord for SortedMembers {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.score.cmp(&other.score).un_wrap(Ordering::Equal)
+        match self.score.cmp(&other.score) {
+            Ordering::Equal => self.member.cmp(&other.member),
+            other => other,
+        }
     }
 }
 
@@ -90,20 +108,20 @@ impl PartialOrd for SortedMembers {
 }
 
 pub struct RSortedSet {
-    pub members : HashMap<String, OrderedFloat<f64>>,
-    pub soreted: BTreeSet<SortedMembers>
+    pub members: HashMap<String, OrderedFloat<f64>>,
+    pub sorted: BTreeSet<SortedMembers>
 }
 
 impl RSortedSet {
     //ZADD, ZREM, ZRANGE
     pub fn new() -> Self {
         Self {
-            members : HashMap::new(),
-            soreted : BTreeSet::new()
+            members: HashMap::new(),
+            sorted: BTreeSet::new()
         }
     }
 
-        pub fn zadd(&mut self, score: f64, member: String) -> bool {
+    pub fn zadd(&mut self, score: f64, member: String) -> bool {
         let ordered_score = OrderedFloat(score);
         if let Some(&old_score) = self.members.get(&member) {
             if old_score == ordered_score {
@@ -141,7 +159,7 @@ impl RSortedSet {
             .collect()
     }
 
-    pub fn zscore(&self, member: String) -> Option<f64> {
-        self.members.get(&member).map(|score| score.0)
+    pub fn zscore(&self, member: &str) -> Option<f64> {
+        self.members.get(member).map(|score| score.0)
     }
-}   
+}

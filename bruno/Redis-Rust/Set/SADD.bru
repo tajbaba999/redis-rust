@@ -1,0 +1,21 @@
+meta {
+  name: SADD
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:3000/sets/myset/add
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "value": "member1"
+  }
+}
