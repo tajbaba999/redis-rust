@@ -35,11 +35,11 @@ impl RList {
     }
 }
 
-pub struct RSet {
-    pub set : HashSet<String>
+pub struct RSets {
+    pub set : HashSet<String>,
 }
 
-impl RSet {
+impl RSets {
     pub fn new() -> Self {
         Self {
             set : HashSet::new()
@@ -63,12 +63,8 @@ impl RSet {
     }
 }
 
-//Soreted sets or ordered sets
-pub struct RSets {
-    
-}
 
-
+//Sorted sets or ordered sets
 #[derive(Clone, Eq)]
 pub struct SortedMembers{
     pub member : String,
@@ -99,7 +95,7 @@ pub struct RSortedSet {
 }
 
 impl RSortedSet {
-    
+    //ZADD, ZREM, ZRANGE
     pub fn new() -> Self {
         Self {
             members : HashMap::new(),
